@@ -2,67 +2,37 @@
 #coding=utf-8
 import sys
 
-for line in sys.stdin:  # 遍历读入数据的每一行
-    
-    line = line.strip()  # 将行尾行首的空格去除
-    words = line.split(',')  #按空格将句子分割成单个单词
-    for seq,word in enumerate(words):
-        if seq == 0:
-            # 清除掉csv文件第一行，第一行是每一列的列头，无数值意义，不计入计数，break            
-            if word == 'user_id':
-                continue
-            else:
-                # 如果不是列头，则开始对第一列产生<key,value>
-                print ('%s\t%s' %('买家id:'+word, 1))
-        elif seq == 1:
-            print ('%s\t%s' %('商品id:'+word, 1))
-        elif seq == 2:
-            print ('%s\t%s' %('商品类别id:'+word, 1))
-        elif seq == 3:
-            print ('%s\t%s' %('卖家id:'+word, 1))
-        elif seq == 4:
-            print ('%s\t%s' %('品牌id:'+word, 1))
-        elif seq == 5:
-            print ('%s\t%s' %('交易时间月:'+word, 1))
-        elif seq == 6:
-            print ('%s\t%s' %('交易时间日:'+word, 1))
-        elif seq == 7:
-            if word == '0':
-                print ('%s\t%s' %('买家行为点击商品:', 1))
-            elif word == '1':
-                print ('%s\t%s' %('买家行为放购物车:', 1))
-            elif word == '2':
-                print ('%s\t%s' %('买家行为购买商品:', 1))
-            elif word == '3':
-                print ('%s\t%s' %('买家行为放收藏夹:', 1))
-            else:
-                pass
-        elif seq == 8:
-            if word == '0':
-                print ('%s\t%s' %('买家年龄 0-17岁:', 1))
-            elif word == '1':
-                print ('%s\t%s' %('买家年龄18-24岁:', 1))
-            elif word == '2':
-                print ('%s\t%s' %('买家年龄25-29岁:', 1))
-            elif word == '3':
-                print ('%s\t%s' %('买家年龄30-34岁:', 1))
-            elif word == '4':
-                print ('%s\t%s' %('买家年龄35-39岁:', 1))
-            elif word == '5':
-                print ('%s\t%s' %('买家年龄40-49岁:', 1))
-            elif word == '6':
-                print ('%s\t%s' %('买家年龄50岁以上:', 1))
-            else:
-                pass
-        elif seq == 9:
-            if word == '1':
-                print ('%s\t%s' %('买家男性:', 1))
-            elif word == '0':
-                print ('%s\t%s' %('买家女性:', 1))
-            else:
-                pass            
-        elif seq == 10:
-            print ('%s\t%s' %('买家省份:'+word, 1))
-        else:
-            pass
 
+for line in sys.stdin:
+    line = line.strip()
+    # 清除掉头部和尾部多余的回车换行之类的符号
+    '''
+    王俊栋:杨  璐,白少东,符式江,郭李萍,于金艳,沈名杰,朱  妍,明佳音,元明亮,栾司琪,王洪洋,王  俪,冉波太,焦美晴,陈  婷
+    通讯录所有者是王俊栋，根据：切分出来，给owner
+    通讯录中好友名单friends 杨  璐,白少东,符式江,郭李萍,于金艳,沈名杰,朱  妍,明佳音,元明亮,栾司琪,王洪洋,王  俪,冉波太,焦美晴,陈  婷
+    根据逗号，逐个切分出来，给列表friend_list
+    '''
+    owner,friends = line.split(':')
+    friend_list = friends.split(',')
+
+    for friend in friend_list:
+        '''
+        因为朋友是双向关系
+        所以A是B的朋友，则B也是A的朋友
+        因此会出现<A,B>和<B,A>这两个key
+        但是实际上这两个key所对应的value应该进行下一步的reducer计算
+        所以让<A,B>和<B,A>这两个key，变成同一个key，通过sort或者shuffle
+        则它俩的value就会在一个reducer上被处理
+        让这两个key变成同一个key的方法就是遵循一个顺序
+        这里设计的顺序就是比较两个字符串owner和friend的大小
+        根据字符串的大小，统一key的顺序
+        不管key是<A,B>和<B,A>
+        value永远都是通讯录中好友名单friends的内容
+        '''
+        if owner > friend:
+            print('<%s,%s>\t[%s]' %(owner, friend, friends))
+        else:
+            print('<%s,%s>\t[%s]' %(friend, owner, friends))
+
+
+    
